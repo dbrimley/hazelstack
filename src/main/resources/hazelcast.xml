@@ -1,0 +1,30 @@
+<hazelcast xsi:schemaLocation="http://www.hazelcast.com/schema/config
+                               http://www.hazelcast.com/schema/config/hazelcast-config-3.2.xsd"
+           xmlns="http://www.hazelcast.com/schema/config"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <management-center enabled="true">http://localhost:8080/mancenter-3.2</management-center>
+
+    <network>
+        <join>
+            <multicast enabled="false"/>
+            <tcp-ip enabled="true">
+                <member>127.0.0.1</member>
+            </tcp-ip>
+        </join>
+        <interfaces enabled="true">
+            <interface>127.0.0.1</interface>
+        </interfaces>
+    </network>
+
+    <map name="user">
+        <map-store enabled="true">
+            <class-name>com.craftedbytes.hazelcast.dao.UserMapStore</class-name>
+            <write-delay-seconds>30</write-delay-seconds>
+        </map-store>
+        <indexes>
+            <index ordered="true">location</index>
+        </indexes>
+    </map>
+
+</hazelcast>
