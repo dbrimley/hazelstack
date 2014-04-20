@@ -19,11 +19,14 @@ public class HazelcastUserService implements UserService {
     private IMap<Integer, User> userMap;
 
     public HazelcastUserService() {
+
+        // Create a client connection to the Hazelcast Cluster
         ClientConfig clientConfig = new ClientConfig();
         clientConfig.getNetworkConfig().addAddress("127.0.0.1");
         HazelcastInstance hazelcastInstance = HazelcastClient.newHazelcastClient(clientConfig);
         userMap = hazelcastInstance.getMap("user");
-        // hit the size method to block on load
+
+        // hit the size method to block on intial MapStore load.
         System.out.println("Loaded map size is = " + userMap.size());
     }
 
@@ -39,12 +42,14 @@ public class HazelcastUserService implements UserService {
 
     @Override
     public void removeUser(Integer userKey) {
+        // evict removes the User from the Hazelcast Map but does not call onto MapStore to delete.
         userMap.evict(userKey);
     }
 
     @Override
     public void addUsers(Map<Integer, User> users) {
         for (User user : users.values()) {
+            // set does not return the replaced value over the wire to client, so can be faster than put.
             userMap.set(user.getId(), user);
         }
     }

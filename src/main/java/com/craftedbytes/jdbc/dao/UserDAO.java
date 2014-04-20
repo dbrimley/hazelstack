@@ -30,7 +30,18 @@ public class UserDAO {
     }
 
     public Collection<User> getUserByLocation(String location) {
-        List<Map<String, Object>> rs = handle.select("select reputation, creation_date, display_name, last_access_date, website_url, location, age, about_me, views, up_votes, down_votes from users where location = :location", location);
+        List<Map<String, Object>> rs = handle.select("select reputation," +
+                "                                            creation_date," +
+                "                                            display_name," +
+                "                                            last_access_date," +
+                "                                            website_url," +
+                "                                            location," +
+                "                                            age," +
+                "                                            about_me," +
+                "                                            views," +
+                "                                            up_votes," +
+                "                                            down_votes " +
+                "                                     from users where location = :location", location);
 
         return buildUserResults(rs);
     }
@@ -58,7 +69,18 @@ public class UserDAO {
     }
 
     public void insertUser(User user) {
-        handle.execute("insert into users (id, reputation, creation_date, display_name, last_access_date, website_url, location, age, about_me, views, up_votes, down_votes) values (?,?,?,?,?,?,?,?,?,?,?,?)",
+        handle.execute("insert into users (id, " +
+                "                          reputation," +
+                "                          creation_date," +
+                "                          display_name," +
+                "                          last_access_date," +
+                "                          website_url," +
+                "                          location," +
+                "                          age," +
+                "                          about_me," +
+                "                          views," +
+                "                          up_votes," +
+                "                          down_votes) values (?,?,?,?,?,?,?,?,?,?,?,?)",
                 user.getId(),
                 user.getReputation(),
                 user.getCreationDate(),
@@ -85,7 +107,19 @@ public class UserDAO {
     public Collection<User> getUsers(Collection<Integer> userKeys) {
 
         StringBuilder sb = new StringBuilder();
-        sb.append("select id, reputation, creation_date, display_name, last_access_date, website_url, location, age, about_me, views, up_votes, down_votes from users where id in(");
+        sb.append("select id," +
+                "         reputation," +
+                "         creation_date," +
+                "         display_name," +
+                "         last_access_date," +
+                "         website_url," +
+                "         location," +
+                "         age," +
+                "         about_me," +
+                "         views," +
+                "         up_votes," +
+                "         down_votes from users where id in(");
+
         for (Integer userKey : userKeys) {
             sb.append(userKey).append(",");
         }
@@ -102,7 +136,17 @@ public class UserDAO {
 
     public User getUser(Integer userKey) {
 
-        List<Map<String, Object>> rs = handle.select("select reputation, creation_date, display_name, last_access_date, website_url, location, age, about_me, views, up_votes, down_votes from users where id = :id", userKey);
+        List<Map<String, Object>> rs = handle.select("select reputation," +
+                "                                            creation_date," +
+                "                                            display_name," +
+                "                                            last_access_date," +
+                "                                            website_url," +
+                "                                            location," +
+                "                                            age," +
+                "                                            about_me," +
+                "                                            views," +
+                "                                            up_votes," +
+                "                                            down_votes from users where id = :id", userKey);
 
         if (rs.size() == 0) {
             System.out.println("no rows found");
@@ -202,7 +246,6 @@ public class UserDAO {
             downVotes = 0;
         }
 
-
         User user = new User(id,
                 displayName,
                 reputation,
@@ -215,7 +258,6 @@ public class UserDAO {
                 views,
                 upVotes,
                 downVotes);
-
 
         return user;
     }
