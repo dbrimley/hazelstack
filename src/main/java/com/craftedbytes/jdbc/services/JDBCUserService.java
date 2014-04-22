@@ -34,4 +34,9 @@ public class JDBCUserService implements UserService {
         }
     }
 
+    @Override
+    public void close() {
+        userDao.close();
+    }
+
 }

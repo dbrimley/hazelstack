@@ -5,7 +5,6 @@ import com.craftedbytes.services.ServiceFactory;
 import com.craftedbytes.services.UserService;
 import org.springframework.util.StopWatch;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,32 +14,48 @@ import static com.craftedbytes.services.ServiceFactory.UserServices.postgresql;
 
 public class TimedBenchmarks {
 
+    public static final int INSERT_COUNT = 1000;
+    public static final int PARTIAL_QUERY_COUNT = 25;
+
+    // Talip Ozturk : Founder and CEO of Hazelcast !
+    public static final int USER_KEY = 62638;
+
     public static void main(String args[]) {
 
         UserService postgresqlService = ServiceFactory.getUserService(postgresql);
         UserService hazelcastService = ServiceFactory.getUserService(hazelcast);
 
-        if (args.length > 0) {
+        try {
 
-            String command = args[0];
+            if (args.length > 0) {
 
-            if ("partialKeyQuery".equals(command)) {
-                partialKeyQuery(postgresqlService, "India");
-                partialKeyQuery(hazelcastService, "India");
-            } else if ("readThrough".equals(command)) {
-                readThrough(hazelcastService);
-                readThrough(postgresqlService);
-            } else if ("writeThrough".equals(command)) {
-                writeThrough(postgresqlService, 8400000);
-                writeThrough(hazelcastService, 8500000);
+                String command = args[0];
+
+                if ("partialKeyQuery".equals(command)) {
+                    partialKeyQuery(postgresqlService, "India");
+                    partialKeyQuery(hazelcastService, "India");
+                } else if ("readThrough".equals(command)) {
+                    readThrough(hazelcastService);
+                    readThrough(postgresqlService);
+                } else if ("writeThrough".equals(command)) {
+                    int startingID = new Integer(args[1]);
+                    writeThrough(postgresqlService, startingID);
+                    writeThrough(hazelcastService, startingID + INSERT_COUNT + 1);
+                }
+
+            } else {
+                System.out.println("Commands are :- ");
+                System.out.println("partialKeyQuery");
+                System.out.println("readThrough");
+                System.out.println("writeThrough");
             }
 
-        } else {
-            System.out.println("Commands are :- ");
-            System.out.println("partialKeyQuery");
-            System.out.println("readThrough");
-            System.out.println("writeThrough");
+        } finally {
+            postgresqlService.close();
+            hazelcastService.close();
+            System.exit(0);
         }
+
 
     }
 
@@ -52,20 +67,16 @@ public class TimedBenchmarks {
     private static void partialKeyQuery(UserService userService, String location) {
 
         StopWatch stopWatch = new StopWatch();
-        for (int i = 0; i < 25; i++) {
+        for (int i = 0; i < PARTIAL_QUERY_COUNT; i++) {
 
             stopWatch.start();
 
-            Collection<User> users = null;
-            users = userService.getUserByLocation(location);
-
-            //System.out.println(users.size());
+            userService.getUserByLocation(location);
 
             stopWatch.stop();
         }
 
-        System.out.println(userService.getClass().getCanonicalName() + " total time = " + stopWatch.getTotalTimeSeconds() + " (secs)");
-        System.out.println(userService.getClass().getCanonicalName() + " avg query time = " + stopWatch.getTotalTimeMillis() / stopWatch.getTaskCount() + " (ms)");
+        printTimes(userService, stopWatch);
     }
 
     /**
@@ -75,23 +86,26 @@ public class TimedBenchmarks {
      */
     private static void readThrough(UserService userService) {
 
-        userService.removeUser(62638);
+        userService.removeUser(USER_KEY);
 
         StopWatch stopWatch = new StopWatch();
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < READ_THROUGH_COUNT(); i++) {
 
             stopWatch.start();
 
-            // Talip Ozturk : Founder and CEO of Hazelcast !
-            User user = userService.getUser(62638);
+            User user = userService.getUser(USER_KEY);
 
             stopWatch.stop();
 
         }
 
-        System.out.println(userService.getClass().getCanonicalName() + " total time = " + stopWatch.getTotalTimeMillis() + " (ms)");
+        printTimes(userService, stopWatch);
 
+    }
+
+    private static int READ_THROUGH_COUNT() {
+        return 10;
     }
 
     /**
@@ -99,21 +113,31 @@ public class TimedBenchmarks {
      */
     private static void writeThrough(UserService userService, int startingID) {
 
-        // Create Update Map of Users
-        Map<Integer, User> users = new HashMap<Integer, User>();
-        for (int i = 0; i < 1000; i++) {
-            User user = new User(startingID + i, "hazelcast_" + i, 100, new Date(), new Date(), "http://www.hazelcast.com", "Palo Alto", 30, "aboutMe", 100, 23, 0);
-            users.put(i, user);
-        }
+        Map<Integer, User> users = createUsersMap(startingID);
 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
+
         userService.addUsers(users);
+
         stopWatch.stop();
 
-        System.out.println(userService.getClass().getCanonicalName() + " took " + stopWatch.getTotalTimeSeconds() + " seconds @ " + new Date().toString());
-
+        printTimes(userService, stopWatch);
     }
 
+    private static Map<Integer, User> createUsersMap(int startingID) {
+        // Create Update Map of Users
+        Map<Integer, User> users = new HashMap<Integer, User>();
+        for (int i = 0; i < INSERT_COUNT; i++) {
+            User user = new User(startingID + i, "hazelcast_" + i, 100, new Date(), new Date(), "http://www.hazelcast.com", "Palo Alto", 30, "aboutMe", 100, 23, 0);
+            users.put(i, user);
+        }
+        return users;
+    }
+
+    private static void printTimes(UserService userService, StopWatch stopWatch) {
+        System.out.println(userService.getClass().getCanonicalName() + " total time = " + stopWatch.getTotalTimeSeconds() + " (secs)");
+        System.out.println(userService.getClass().getCanonicalName() + " avg time = " + stopWatch.getTotalTimeMillis() / stopWatch.getTaskCount() + " (ms)");
+    }
 
 }

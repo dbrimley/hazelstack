@@ -3,7 +3,8 @@
            xmlns="http://www.hazelcast.com/schema/config"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-    <management-center enabled="true">http://localhost:8080/mancenter-3.2</management-center>
+    <!-- Set the enabled attribute to true if you have installed the management centre -->
+    <management-center enabled="false">http://localhost:8080/mancenter-3.2</management-center>
 
     <network>
         <join>
@@ -20,7 +21,8 @@
     <map name="user">
         <map-store enabled="true">
             <class-name>com.craftedbytes.hazelcast.dao.UserMapStore</class-name>
-            <write-delay-seconds>30</write-delay-seconds>
+            <!-- Setting the write-delay-seconds to >0 enables write behind to the MapStore-->
+            <write-delay-seconds>60</write-delay-seconds>
         </map-store>
         <indexes>
             <index ordered="true">location</index>

@@ -7,6 +7,9 @@ import com.hazelcast.nio.serialization.DataSerializable;
 import java.io.IOException;
 import java.util.Date;
 
+/**
+ * User POJO, note that it uses Hazelcast DataSerializable
+ */
 public class User implements DataSerializable {
 
     private int id;

@@ -15,4 +15,6 @@ public interface UserService {
 
     void addUsers(Map<Integer, User> users);
 
+    void close();
+
 }

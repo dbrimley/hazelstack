@@ -7,14 +7,19 @@ import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.util.IntegerMapper;
 
+import java.sql.SQLException;
 import java.util.*;
 
+/**
+ * JDBC Based Data Access Class for the User POJO.
+ */
 public class UserDAO {
 
     private Handle handle;
+    private BasicDataSource bds;
 
     public UserDAO() {
-        BasicDataSource bds = new BasicDataSource();
+        bds = new BasicDataSource();
         bds.setDriverClassName("org.postgresql.Driver");
         bds.setUrl("jdbc:postgresql://localhost/codereview.stackexchange");
         DBI dbi = new DBI(bds);
@@ -69,8 +74,7 @@ public class UserDAO {
     }
 
     public void insertUser(User user) {
-        handle.execute("insert into users (id, " +
-                "                          reputation," +
+        handle.execute("insert into users (reputation," +
                 "                          creation_date," +
                 "                          display_name," +
                 "                          last_access_date," +
@@ -80,8 +84,8 @@ public class UserDAO {
                 "                          about_me," +
                 "                          views," +
                 "                          up_votes," +
-                "                          down_votes) values (?,?,?,?,?,?,?,?,?,?,?,?)",
-                user.getId(),
+                "                          down_votes) values (?,?,?,?,?,?,?,?,?,?,?)",
+
                 user.getReputation(),
                 user.getCreationDate(),
                 user.getDisplayName(),
@@ -260,5 +264,14 @@ public class UserDAO {
                 downVotes);
 
         return user;
+    }
+
+    public void close() {
+        handle.close();
+        try {
+            bds.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

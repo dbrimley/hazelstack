@@ -16,6 +16,8 @@ import java.util.Map;
  */
 public class HazelcastUserService implements UserService {
 
+    private HazelcastInstance hazelcastInstance;
+
     private IMap<Integer, User> userMap;
 
     public HazelcastUserService() {
@@ -23,7 +25,7 @@ public class HazelcastUserService implements UserService {
         // Create a client connection to the Hazelcast Cluster
         ClientConfig clientConfig = new ClientConfig();
         clientConfig.getNetworkConfig().addAddress("127.0.0.1");
-        HazelcastInstance hazelcastInstance = HazelcastClient.newHazelcastClient(clientConfig);
+        hazelcastInstance = HazelcastClient.newHazelcastClient(clientConfig);
         userMap = hazelcastInstance.getMap("user");
 
         // hit the size method to block on intial MapStore load.
@@ -48,10 +50,12 @@ public class HazelcastUserService implements UserService {
 
     @Override
     public void addUsers(Map<Integer, User> users) {
-        for (User user : users.values()) {
-            // set does not return the replaced value over the wire to client, so can be faster than put.
-            userMap.set(user.getId(), user);
-        }
+        userMap.putAll(users);
+    }
+
+    @Override
+    public void close() {
+
     }
 
 }
